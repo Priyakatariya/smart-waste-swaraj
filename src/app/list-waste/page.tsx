@@ -108,6 +108,28 @@ export default function ListWastePage() {
   };
 
 
+  const handleAutoCategorize = () => {
+    if (!imageUrl && !description) {
+      setErrorMessage('Please upload an image or provide a description for AI categorization.');
+      return;
+    }
+    
+    setErrorMessage('');
+    setItemType('waste'); 
+    
+    // Simulate AI delay and logic
+    const categories = ['recyclable_plastic', 'e_waste', 'recyclable_paper', 'biodegradable', 'recyclable_metal'];
+    const randomCategory = categories[Math.floor(Math.random() * categories.length)];
+    
+    setTimeout(() => {
+      setWasteCategory(randomCategory as WasteCategory);
+      setWasteType(`Auto-detected ${randomCategory.replace('_', ' ')}`);
+      setQuantity('1');
+      setUnit('kg');
+      alert(`🤖 AI successfully categorized your waste as: ${randomCategory.replace('_', ' ')}!`);
+    }, 1500);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMessage('');
@@ -320,6 +342,15 @@ export default function ListWastePage() {
               <FaUpload /> Upload a clear photo of the waste/item.
             </p>
           )}
+
+          {/* AI Mock Auto-Categorize Button */}
+          <button 
+            type="button" 
+            onClick={handleAutoCategorize} 
+            style={{ marginTop: '10px', background: '#9c27b0', color: 'white', padding: '10px 15px', border: 'none', borderRadius: '5px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 'bold' }}
+          >
+            ✨ Auto-Categorize with AI
+          </button>
         </div>
 
 

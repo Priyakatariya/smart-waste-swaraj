@@ -19,7 +19,15 @@ import React, { useState } from "react";
 
 export default function LandingPage() {
   const [openFAQ, setOpenFAQ] = useState<number | null>(null);
+  const [stats, setStats] = useState({ userCount: 0, completedListings: 0, totalWasteRecycled: 0 });
   const fullHeroTitle = "Revolutionizing Waste Management for a Cleaner India"; // Define your hero title here
+
+  React.useEffect(() => {
+    fetch('/api/stats')
+      .then(res => res.json())
+      .then(data => setStats(data))
+      .catch(err => console.error(err));
+  }, []);
 
   const toggleFAQ = (index: number) => {
     setOpenFAQ(openFAQ === index ? null : index);
@@ -30,13 +38,11 @@ export default function LandingPage() {
       {/* Hero Section */}
       <section
         className={styles.heroSection}
-        // Style can be inline or via module CSS if background-image changes dynamically
-        // style={{ backgroundImage: `url('/waste-hero-bg.jpg')` }} // Make sure this image path is correct
       >
         <div className={styles.heroOverlay}></div>
         <div className={styles.heroContent}>
           <h1 className={styles.heroTitle}>
-            {fullHeroTitle} {/* Render the full title instantly */}
+            {fullHeroTitle}
           </h1>
           <p className={styles.heroSubtitle}>
             Connect waste generators with collectors for efficient, sustainable
@@ -45,6 +51,26 @@ export default function LandingPage() {
           <Link href="/auth/signup" className={styles.getStartedButton}>
             <FaBolt className={styles.buttonIcon} /> Get Started Today
           </Link>
+        </div>
+      </section>
+
+      {/* Platform Impact Section */}
+      <section className={styles.impactSection}>
+        <div className={styles.container}>
+          <div className={styles.impactGrid}>
+            <div className={styles.impactCard}>
+              <h3 className={styles.impactNumber}>{stats.userCount}+</h3>
+              <p className={styles.impactLabel}>Active Users</p>
+            </div>
+            <div className={styles.impactCard}>
+              <h3 className={styles.impactNumber}>{stats.completedListings}+</h3>
+              <p className={styles.impactLabel}>Successful Pickups</p>
+            </div>
+            <div className={styles.impactCard}>
+              <h3 className={styles.impactNumber}>{stats.totalWasteRecycled} kg</h3>
+              <p className={styles.impactLabel}>Waste Recycled</p>
+            </div>
+          </div>
         </div>
       </section>
 

@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { connectToDB } from '@/lib/db';
 import Listing from '@/models/Listing';
+import User from '@/models/User';
 
 export async function PATCH(req: Request) {
   try {
@@ -25,6 +26,14 @@ export async function PATCH(req: Request) {
 
     if (!updatedListing) {
       return NextResponse.json({ message: "Listing not found" }, { status: 404 });
+    }
+
+    // Award Swaraj Points
+    if (updateFields.status === 'completed') {
+      const generatorId = updatedListing.userId;
+      const collectorId = updatedListing.assignedCollectorId;
+      if (generatorId) await User.findByIdAndUpdate(generatorId, { $inc: { swarajPoints: 50 } });
+      if (collectorId) await User.findByIdAndUpdate(collectorId, { $inc: { swarajPoints: 50 } });
     }
 
     // Format for frontend

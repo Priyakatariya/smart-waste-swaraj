@@ -50,13 +50,36 @@ export default function DashboardPage() {
   const pendingListings = userListings.filter((listing: WasteListing) => listing.status === 'pending');
   const completedListings = userListings.filter((listing: WasteListing) => listing.status === 'completed');
 
-  // Helper functions
+  const [ratingModal, setRatingModal] = useState<{isOpen: boolean, targetUserId: string, targetName: string}>({isOpen: false, targetUserId: '', targetName: ''});
+
+  const handleRate = async (rating: number) => {
+    try {
+      const res = await fetch('/api/users/rate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ targetUserId: ratingModal.targetUserId, rating })
+      });
+      if (res.ok) {
+        alert("Rating submitted!");
+      } else {
+        alert("Failed to submit rating.");
+      }
+    } catch (err) {
+      console.error(err);
+    }
+    setRatingModal({ isOpen: false, targetUserId: '', targetName: '' });
+  };
+
   const getGeneratorName = (userId: string) => {
     const generator = users.find((u: User) => u.id === userId);
     return generator ? generator.name : 'Unknown';
   };
 
-  // --- Card UI Component ---
+  const getCollectorName = (userId: string) => {
+    const collector = users.find((u: User) => u.id === userId);
+    return collector ? collector.name : 'Unknown';
+  };
+
   const Card = ({ title, value, icon, bgColor }: any) => (
     <div className={`${styles.dashboardCard} ${bgColor}`}>
       <div>
@@ -72,7 +95,7 @@ export default function DashboardPage() {
       <h1 className={styles.welcomeTitle}>
         Welcome, {currentUser?.name || currentUser?.email.split('@')[0]}!
       </h1>
-
+      
       {/* Role Toggle */}
       <div style={{ marginBottom: '20px', display: 'flex', gap: '10px' }}>
         <button 
@@ -114,12 +137,25 @@ export default function DashboardPage() {
                   <FaMapMarkedAlt /> Map
                 </button>
 
-                {/* COLLECTOR ACTIONS FIX */}
+                {listing.status === 'completed' && (
+                  <button 
+                    onClick={() => {
+                      if (viewRole === 'generator' && listing.assignedCollectorId) {
+                        setRatingModal({ isOpen: true, targetUserId: listing.assignedCollectorId, targetName: getCollectorName(listing.assignedCollectorId) });
+                      } else if (viewRole === 'collector') {
+                        setRatingModal({ isOpen: true, targetUserId: listing.userId, targetName: getGeneratorName(listing.userId) });
+                      }
+                    }}
+                    style={{ background: '#FFC107', color: '#000', border: 'none', padding: '8px 12px', borderRadius: '5px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '5px' }}
+                  >
+                     Rate User
+                  </button>
+                )}
+
                 {viewRole === 'collector' && (
                   <div className={styles.collectorActions}>
                     {listing.status === 'pending' && (
                       <button 
-                        // FIX: Use updateWasteListing to assign
                         onClick={() => updateWasteListing?.(listing.id, { status: 'assigned', assignedCollectorId: currentUser.id })}
                         className={styles.actionButtonAssign}
                       >
@@ -128,7 +164,6 @@ export default function DashboardPage() {
                     )}
                     {listing.status === 'assigned' && listing.assignedCollectorId === currentUser.id && (
                       <button 
-                        // FIX: Use updateWasteListing to complete
                         onClick={() => updateWasteListing?.(listing.id, { status: 'completed' })}
                         className={styles.actionButtonComplete}
                       >
@@ -144,6 +179,20 @@ export default function DashboardPage() {
           <p className={styles.noData}>No listings to show.</p>
         )}
       </div>
+
+      {ratingModal.isOpen && (
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
+          <div style={{ background: 'white', padding: '20px', borderRadius: '8px', textAlign: 'center', color: 'black' }}>
+            <h3>Rate {ratingModal.targetName}</h3>
+            <div style={{ display: 'flex', gap: '10px', justifyContent: 'center', margin: '20px 0' }}>
+              {[1, 2, 3, 4, 5].map(star => (
+                <button key={star} onClick={() => handleRate(star)} style={{ fontSize: '24px', background: 'none', border: 'none', cursor: 'pointer' }}>⭐</button>
+              ))}
+            </div>
+            <button onClick={() => setRatingModal({ isOpen: false, targetUserId: '', targetName: '' })} style={{ padding: '5px 10px' }}>Cancel</button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
