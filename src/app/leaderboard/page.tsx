@@ -3,7 +3,7 @@ import User from '@/models/User';
 import styles from '../dashboard/dashboard.module.css'; // Reusing some card styles
 import Link from 'next/link';
 
-export const revalidate = 60; // Revalidate every minute
+export const dynamic = 'force-dynamic';
 
 export default async function LeaderboardPage() {
   await connectToDB();
