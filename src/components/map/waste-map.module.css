@@ -5,7 +5,7 @@
 If you don't have these in your global CSS, you can uncomment them here.
 It's generally better to define them once in globals.css or a dedicated theme file.
 */
-:root {
+.mapContainer {
   --status-pending: #ffc107; /* Orange/Yellow */
   --status-assigned: #2196f3; /* Blue */
   --status-completed: #4caf50; /* Green */
