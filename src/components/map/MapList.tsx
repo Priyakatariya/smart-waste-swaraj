@@ -18,7 +18,6 @@ import {
   FaCalendarAlt,
   FaCheckCircle,
   FaTruck,
-  FaPlusCircle, // For adding a comment
   FaPencilAlt, // For edit action (optional, but good for completeness)
 } from "react-icons/fa";
 import { formatDistanceToNow, parseISO, isValid } from "date-fns";

@@ -6,13 +6,9 @@ import {
   FaRecycle,
   FaMapMarkedAlt,
   FaLeaf,
-  FaQuestionCircle,
-  FaEnvelope,
   FaBolt,
   FaMinus,
   FaPlus,
-  FaArrowRight,
-  FaPhone,
 } from "react-icons/fa";
 import styles from "./landing-page.module.css"; // Import module CSS
 import React, { useState } from "react";

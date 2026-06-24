@@ -57,7 +57,7 @@ export default function Footer() {
                 } else {
                   alert("Oops! Something went wrong. Please try again.");
                 }
-              } catch (error) {
+              } catch {
                 alert("Error sending message. Please check your network connection.");
               }
             }}

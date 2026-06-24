@@ -16,7 +16,6 @@ import {
   FaSignInAlt,
   FaUserPlus,
   FaSignOutAlt,
-  FaUserCircle, // User profile icon (if you want to use it later)
   FaLeaf
 } from 'react-icons/fa';
 

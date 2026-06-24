@@ -2,7 +2,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { FaSearch, FaFilter, FaPlus, FaSeedling, FaTrash, FaBoxOpen, FaLaptopMedical, FaExclamationTriangle, FaRecycle, FaMoneyBillWave } from 'react-icons/fa';
+import { FaSearch, FaFilter, FaPlus, FaSeedling, FaTrash, FaLaptopMedical, FaExclamationTriangle, FaRecycle, FaMoneyBillWave } from 'react-icons/fa';
 import styles from './waste-map.module.css'; // Uses waste-map.module.css for its own styles
 import { ItemType, WasteCategory } from '../../types'; // Ensure correct types are imported
 
