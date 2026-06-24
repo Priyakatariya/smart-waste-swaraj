@@ -22,7 +22,7 @@ import {
   FaPencilAlt, // For edit action (optional, but good for completeness)
 } from "react-icons/fa";
 import { formatDistanceToNow, parseISO, isValid } from "date-fns";
-import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
+
 
 interface ListingDetailPanelProps {
   listing: WasteListingLocation | null;

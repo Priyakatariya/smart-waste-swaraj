@@ -11,6 +11,8 @@ export interface User {
   displayName?: string; // Often used for user-friendly names
   userType: 'generator' | 'collector';
   location?: { latitude: number; longitude: number };
+  swarajPoints?: number;
+  rating?: number;
 }
 
 export interface LocationData {
