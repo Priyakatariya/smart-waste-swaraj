@@ -1,7 +1,7 @@
 /* src/app/dashboard/dashboard.module.css */
 
 /* Define CSS Variables if not in globals.css (for standalone testing) */
-:root {
+.dashboardContainer {
   --color-primary: #4CAF50;
   --color-secondary: #FFC107;
   --color-accent: #2196F3;

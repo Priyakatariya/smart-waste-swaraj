@@ -1,7 +1,7 @@
 /* src/app/map/map-page.module.css */
 
 /* Root Variables (can be inherited from global styles or defined here) */
-:root {
+.mapWrapper {
   --color-primary: #4caf50; /* Green */
   --color-accent: #2196f3; /* Blue */
   --color-danger: #f44336; /* Red */

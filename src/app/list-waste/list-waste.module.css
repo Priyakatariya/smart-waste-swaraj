@@ -1,6 +1,6 @@
 /* src/app/list-waste/list-waste.module.css */
 
-:root {
+.listWasteContainer {
   --color-primary: #4CAF50;
   --color-secondary: #FFC107;
   --color-accent: #2196F3;

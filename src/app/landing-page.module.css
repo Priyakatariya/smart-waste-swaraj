@@ -1,7 +1,7 @@
 /* src/app/landing-page.module.css */
 
 /* --- Root Variables --- */
-:root {
+.landingPageContainer {
   --status-pending: #FF7F50;   /* **UPDATED: Coral (was Yellow/Orange)** */
   --status-assigned: #2196F3;  /* Blue */
   --status-completed: #4CAF50; /* Green */
