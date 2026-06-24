@@ -14,7 +14,7 @@ import {
   WasteCategory,
   WasteStatus,
 } from "../../types"; // Import WasteStatus
-import { useData } from "../../contexts/DataContext";
+import { useData } from "@/contexts/DataContext";
 import { useRouter, useSearchParams } from "next/navigation";
 import { FaSpinner, FaSearch, FaFilter, FaPlusCircle } from "react-icons/fa";
 // Adjusted icons for better representation (GiPlasticBottle for plastic, GiPaper for paper)
@@ -56,6 +56,7 @@ const WasteCountCard: React.FC<WasteCountCardProps> = ({
 // Helper component for Map Controls
 interface MapControlsComponentProps {
   onSearch: (term: string) => void;
+  searchTerm: string;
   onFilterCategory: (filter: WasteCategory | ItemType | "all") => void;
   selectedFilter: WasteCategory | ItemType | "all";
   onListNewWaste: () => void;
@@ -69,6 +70,7 @@ interface MapControlsComponentProps {
 
 const MapControlsComponent: React.FC<MapControlsComponentProps> = ({
   onSearch,
+  searchTerm,
   onFilterCategory,
   selectedFilter,
   onListNewWaste,
@@ -99,6 +101,7 @@ const MapControlsComponent: React.FC<MapControlsComponentProps> = ({
             type="text"
             placeholder="Search waste by type, location..."
             className={styles.searchInput}
+            value={searchTerm}
             onChange={handleSearchChange}
           />
         </div>
@@ -127,9 +130,16 @@ const MapControlsComponent: React.FC<MapControlsComponentProps> = ({
           </select>
         </div>
 
-        <button className={styles.addWasteButton} onClick={onListNewWaste}>
-          <FaPlusCircle /> List New Waste / Item
-        </button>
+        <div style={{ display: 'flex', gap: '10px' }}>
+          <button className={styles.addWasteButton} onClick={onListNewWaste} style={{ flex: 1 }}>
+            <FaPlusCircle /> List New Waste
+          </button>
+          {(selectedFilter !== 'all' || searchTerm !== '') && (
+            <button className={styles.addWasteButton} onClick={() => { onSearch(''); onFilterCategory('all'); }} style={{ flex: 1, backgroundColor: '#f44336' }}>
+              Clear Filters
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Changed Title to reflect "Items" instead of "Quantities" */}
@@ -210,12 +220,12 @@ export default function MapPage() {
   // ⁠ wasteListings ⁠ from DataContext will be our source of truth for all listings.
   // We need a way to trigger updates in DataContext for status changes.
   const {
-    currentUser,
-    loading: dataContextLoading,
-    wasteListings,
-    users,
-    updateWasteListing,
-  } = useData();
+  user: currentUser,
+  loading: dataContextLoading,
+  wasteListings,
+  users = [], // users ko add karein aur default khali array rakhein
+  updateWasteListing,
+} = useData();
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -293,14 +303,11 @@ export default function MapPage() {
 
     // Apply search term
     if (searchTerm.trim()) {
-      const lowerCaseSearchTerm = searchTerm.toLowerCase();
-      filtered = filtered.filter(
-        (loc) =>
-          loc.wasteType.toLowerCase().includes(lowerCaseSearchTerm) ||
-          loc.description?.toLowerCase().includes(lowerCaseSearchTerm) ||
-          loc.location.address?.toLowerCase().includes(lowerCaseSearchTerm) ||
-          loc.location.city?.toLowerCase().includes(lowerCaseSearchTerm)
-      );
+      const searchWords = searchTerm.toLowerCase().split(/[\s,]+/).filter(w => w.length > 0);
+      filtered = filtered.filter((loc) => {
+        const searchableText = `${loc.wasteType} ${loc.wasteCategory || ''} ${loc.description || ''} ${loc.location.address || ''} ${loc.location.city || ''}`.toLowerCase();
+        return searchWords.every(word => searchableText.includes(word));
+      });
     }
 
     return filtered;
@@ -429,7 +436,7 @@ export default function MapPage() {
               : Math.random().toString(36).substring(2), // Generate a unique id
             userId: currentUser?.id || "system",
             userName:
-              currentUser?.displayName || currentUser?.email || "System",
+              currentUser?.name || currentUser?.email || "System",
             text: commentText,
             createdAt: new Date().toISOString(),
           };
@@ -501,6 +508,7 @@ export default function MapPage() {
         {/* Sidebar with Controls and Counts */}
         <MapControlsComponent
           onSearch={setSearchTerm}
+          searchTerm={searchTerm}
           onFilterCategory={setSelectedFilter}
           selectedFilter={selectedFilter}
           onListNewWaste={handleListNewWaste}

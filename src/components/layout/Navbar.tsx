@@ -4,7 +4,7 @@
 import Link from 'next/link';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation'; // Import useRouter for redirection
-import { useData } from '../../contexts/DataContext';
+import { useData } from '@/contexts/DataContext';
 import {
   FaBars,
   FaTimes,
@@ -16,13 +16,14 @@ import {
   FaSignInAlt,
   FaUserPlus,
   FaSignOutAlt,
-  FaUserCircle // User profile icon (if you want to use it later)
+  FaUserCircle, // User profile icon (if you want to use it later)
+  FaLeaf
 } from 'react-icons/fa';
 
 import styles from './navbar.module.css';
 
 export default function Navbar() {
-  const { currentUser, logout } = useData();
+  const {  user:currentUser, logout } = useData();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const router = useRouter(); // Initialize useRouter hook
 
@@ -55,8 +56,11 @@ export default function Navbar() {
     <nav className={styles.navbar}>
       <div className={styles.container}>
         {/* Logo and Site Title */}
-        <Link href="/" className={styles.logo} onClick={handleNavLinkClick}>
-          <span className={styles.logoIcon}>♻️</span> Smart Waste Swaraj
+        <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', textDecoration: 'none', color: '#fff', whiteSpace: 'nowrap' }} onClick={handleNavLinkClick}>
+          <div style={{ backgroundColor: '#fff', color: '#4CAF50', width: '38px', height: '38px', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.4rem', boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}>
+            <FaLeaf />
+          </div>
+          <span style={{ fontSize: '1.4rem', fontWeight: '800', letterSpacing: '0.5px' }}>Smart Waste Swaraj</span>
         </Link>
 
         {/* Mobile Menu Toggle Button (Hamburger/X icon) */}
@@ -84,22 +88,59 @@ export default function Navbar() {
           </Link>
 
           {/* Conditional rendering for Login/Signup or Logout button */}
-          {currentUser ? (
-            // User is logged in
-            <button onClick={handleLogout} className={`${styles.logoutButton} ${styles.navLink}`}>
-              <FaSignOutAlt className={styles.navIcon} /> Logout ({currentUser.email.split('@')[0]})
-            </button>
-          ) : (
-            // User is not logged in
-            <>
-              <Link href="/auth/login" className={`${styles.authButton} ${styles.navLink}`} onClick={handleNavLinkClick}>
-                <FaSignInAlt className={styles.navIcon} /> Login
-              </Link>
-              <Link href="/auth/signup" className={`${styles.authButton} ${styles.navLink}`} onClick={handleNavLinkClick}>
-                <FaUserPlus className={styles.navIcon} /> Signup
-              </Link>
-            </>
-          )}
+          <div className={styles.profileSection}>
+            {currentUser ? (
+              // User is logged in - Profile Dropdown
+              <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+                <div 
+                  style={{ 
+                    width: '40px', height: '40px', borderRadius: '50%', backgroundColor: '#fff', color: '#4CAF50', 
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', 
+                    fontSize: '1.2rem', cursor: 'pointer', border: '2px solid #e8f5e9', textTransform: 'uppercase'
+                  }}
+                  onClick={(e) => {
+                    const menu = e.currentTarget.nextElementSibling as HTMLElement;
+                    menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
+                  }}
+                >
+                  {(currentUser.name || currentUser.email).charAt(0)}
+                </div>
+                
+                <div 
+                  style={{ 
+                    display: 'none', position: 'absolute', top: '50px', right: '0', backgroundColor: '#fff', 
+                    color: '#333', borderRadius: '8px', boxShadow: '0 4px 12px rgba(0,0,0,0.15)', 
+                    padding: '1rem', minWidth: '200px', zIndex: 1000 
+                  }}
+                >
+                  <div style={{ borderBottom: '1px solid #eee', paddingBottom: '0.5rem', marginBottom: '0.5rem' }}>
+                    <div style={{ fontWeight: 'bold', fontSize: '1rem' }}>{currentUser.name || currentUser.email.split('@')[0]}</div>
+                    <div style={{ fontSize: '0.8rem', color: '#666' }}>{currentUser.email}</div>
+                  </div>
+                  <button 
+                    onClick={handleLogout} 
+                    style={{ 
+                      width: '100%', padding: '0.6rem', textAlign: 'left', backgroundColor: 'transparent', 
+                      border: 'none', color: '#d32f2f', fontWeight: 'bold', cursor: 'pointer', 
+                      display: 'flex', alignItems: 'center', gap: '0.5rem' 
+                    }}
+                  >
+                    <FaSignOutAlt /> Logout
+                  </button>
+                </div>
+              </div>
+            ) : (
+              // User is not logged in
+              <>
+                <Link href="/auth/login" className={`${styles.authButton} ${styles.navLink}`} onClick={handleNavLinkClick}>
+                  <FaSignInAlt className={styles.navIcon} /> Login
+                </Link>
+                <Link href="/auth/signup" className={`${styles.authButton} ${styles.navLink}`} onClick={handleNavLinkClick}>
+                  <FaUserPlus className={styles.navIcon} /> Signup
+                </Link>
+              </>
+            )}
+          </div>
         </div>
       </div>
     </nav>

@@ -78,7 +78,6 @@ export default function MapClient({
 
   return (
     <MapContainer
-      key={focusListingId ?? "default"}
       center={[27.1751, 78.0421]}
       zoom={13}
       scrollWheelZoom
@@ -90,11 +89,11 @@ export default function MapClient({
         attribution="&copy; OpenStreetMap contributors"
       />
       {locations.map(
-        (l) =>
+        (l, index) =>
           l.location.latitude != null &&
           l.location.longitude != null && (
             <Marker
-              key={l.id}
+              key={l.id || (l as any)._id || `marker-${index}`}
               position={[l.location.latitude, l.location.longitude]}
               icon={getIcon(l.itemType, l.wasteCategory)}
               eventHandlers={{ click: () => onMarkerClick(l) }}
@@ -123,12 +122,10 @@ export function WasteMap({
   focusListingId,
 }: MapClientProps) {
   return (
-    <div className={styles.mapContainer}>
-      <MapClient
-        locations={locations}
-        onMarkerClick={onMarkerClick}
-        focusListingId={focusListingId}
-      />
-    </div>
+    <MapClient
+      locations={locations}
+      onMarkerClick={onMarkerClick}
+      focusListingId={focusListingId}
+    />
   );
 }

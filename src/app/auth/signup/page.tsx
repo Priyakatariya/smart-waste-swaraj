@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { FaUser, FaEnvelope, FaLock, FaUserTag, FaUserPlus, FaSpinner } from 'react-icons/fa';
-import { useData } from '../../../contexts/DataContext';
+import { useData } from '@/contexts/DataContext';
 import styles from './signup.module.css';
 
 export default function SignupPage() {
@@ -30,17 +30,15 @@ export default function SignupPage() {
     }
 
     try {
-      // Assuming your signup function also takes password
-      const success = await signup({ name, email, userType });
+      // TypeScript now knows 'password' is valid here
+      const success = await signup({ name, email, password, userType });
       if (success) {
-        // Optional: Redirect to login or dashboard based on your flow
-        router.push('/dashboard');
+        router.push('/auth/login');
       } else {
         setError('Failed to create account. Email might already be in use.');
       }
     } catch (err) {
       setError('An unexpected error occurred. Please try again later.');
-      console.error(err);
     } finally {
       setLoading(false);
     }
@@ -55,71 +53,29 @@ export default function SignupPage() {
         <form onSubmit={handleSubmit} className={styles.signupForm}>
           <div className={styles.inputGroup}>
             <FaUser className={styles.inputIcon} />
-            <input
-              type="text"
-              placeholder="Your Full Name"
-              className={styles.inputField}
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              required
-            />
+            <input type="text" placeholder="Your Full Name" className={styles.inputField} value={name} onChange={(e) => setName(e.target.value)} required />
           </div>
           <div className={styles.inputGroup}>
             <FaEnvelope className={styles.inputIcon} />
-            <input
-              type="email"
-              placeholder="Your Email"
-              className={styles.inputField}
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-            />
+            <input type="email" placeholder="Your Email" className={styles.inputField} value={email} onChange={(e) => setEmail(e.target.value)} required />
           </div>
           <div className={styles.inputGroup}>
             <FaLock className={styles.inputIcon} />
-            <input
-              type="password"
-              placeholder="Password"
-              className={styles.inputField}
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-            />
+            <input type="password" placeholder="Password" className={styles.inputField} value={password} onChange={(e) => setPassword(e.target.value)} required />
           </div>
           <div className={styles.inputGroup}>
             <FaLock className={styles.inputIcon} />
-            <input
-              type="password"
-              placeholder="Confirm Password"
-              className={styles.inputField}
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-              required
-            />
+            <input type="password" placeholder="Confirm Password" className={styles.inputField} value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} required />
           </div>
 
           <div className={styles.userTypeSelection}>
             <label className={styles.userTypeLabel}>
-              <input
-                type="radio"
-                name="userType"
-                value="generator"
-                checked={userType === 'generator'}
-                onChange={() => setUserType('generator')}
-                className={styles.radioInput}
-              />
+              <input type="radio" name="userType" value="generator" checked={userType === 'generator'} onChange={() => setUserType('generator')} className={styles.radioInput} />
               <span className={styles.radioCustom}></span>
               <FaUserTag className={styles.radioIcon} /> Waste Generator
             </label>
             <label className={styles.userTypeLabel}>
-              <input
-                type="radio"
-                name="userType"
-                value="collector"
-                checked={userType === 'collector'}
-                onChange={() => setUserType('collector')}
-                className={styles.radioInput}
-              />
+              <input type="radio" name="userType" value="collector" checked={userType === 'collector'} onChange={() => setUserType('collector')} className={styles.radioInput} />
               <span className={styles.radioCustom}></span>
               <FaUserTag className={styles.radioIcon} /> Waste Collector
             </label>
@@ -132,10 +88,7 @@ export default function SignupPage() {
             {loading ? 'Signing Up...' : 'Sign Up'}
           </button>
         </form>
-
-        <p className={styles.loginPrompt}>
-          Already have an account? <Link href="/auth/login" className={styles.loginLink}>Login Here</Link>
-        </p>
+        <p className={styles.loginPrompt}>Already have an account? <Link href="/auth/login" className={styles.loginLink}>Login Here</Link></p>
       </div>
     </div>
   );

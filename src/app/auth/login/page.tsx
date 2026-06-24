@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { FaEnvelope, FaLock, FaSignInAlt, FaSpinner } from 'react-icons/fa';
-import { useData } from '../../../contexts/DataContext';
+import { useData } from '@/contexts/DataContext';
 import styles from './login.module.css';
 
 export default function LoginPage() {

@@ -3,12 +3,12 @@
 
 import React from 'react';
 import Link from 'next/link';
-import { useData } from '../contexts/DataContext';
+import { useData } from '@/contexts/DataContext';
 import { useRouter } from 'next/navigation';
 import { FaRecycle, FaMapMarkedAlt, FaPlusSquare, FaSignOutAlt, FaSignInAlt, FaUserPlus, FaTachometerAlt } from 'react-icons/fa';
 
 export default function Navbar() {
-  const { currentUser, logout } = useData();
+  const {  user:currentUser, logout } = useData();
   const router = useRouter();
 
   const handleLogout = () => {
@@ -40,22 +40,27 @@ export default function Navbar() {
 
           {currentUser ? (
             <>
-              {currentUser.userType === 'generator' && (
-                <Link href="/list-waste" className="text-white hover:text-blue-200 transition-colors duration-200 flex items-center">
-                  <FaPlusSquare className="inline-block mr-1" /> List Waste
-                </Link>
-              )}
+              <Link href="/list-waste" className="text-white hover:text-blue-200 transition-colors duration-200 flex items-center text-base">
+                <FaPlusSquare className="inline-block mr-1" /> List Waste
+              </Link>
               
-              <Link href="/map" className="text-white hover:text-blue-200 transition-colors duration-200 flex items-center">
+              <Link href="/map" className="text-white hover:text-blue-200 transition-colors duration-200 flex items-center text-base">
                 <FaMapMarkedAlt className="inline-block mr-1" /> Waste Map
               </Link>
-              <Link href="/dashboard" className="text-white hover:text-blue-200 transition-colors duration-200 flex items-center">
+              <Link href="/dashboard" className="text-white hover:text-blue-200 transition-colors duration-200 flex items-center text-base">
                 <FaTachometerAlt className="inline-block mr-1" /> Dashboard
               </Link>
-              <span className="text-white text-sm hidden md:block opacity-80">
-                Welcome, {currentUser.name || currentUser.email.split('@')[0]}
-              </span>
-              <button onClick={handleLogout} className="border border-white text-white font-semibold py-1.5 px-3 rounded-lg hover:bg-white hover:text-green-600 transition duration-200 text-sm flex items-center">
+              
+              <div className="hidden md:flex flex-col items-end mr-2">
+                <span className="text-white text-base font-semibold leading-tight">
+                  {currentUser.name || currentUser.email.split('@')[0]}
+                </span>
+                <span className="text-white text-xs opacity-80 leading-tight">
+                  {currentUser.email}
+                </span>
+              </div>
+
+              <button onClick={handleLogout} className="border border-white text-white font-semibold py-2 px-4 rounded-lg hover:bg-white hover:text-green-600 transition duration-200 text-base flex items-center">
                 <FaSignOutAlt className="inline-block mr-1" /> Logout
               </button>
             </>

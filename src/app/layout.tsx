@@ -1,12 +1,13 @@
 // src/app/layout.tsx
 import "./globals.css";
 import Navbar from "../components/layout/Navbar";
-import { DataProvider } from "../contexts/DataContext";
+import Footer from "../components/layout/Footer";
+import { DataProvider } from "@/contexts/DataContext";
 // Import the fonts you want to use
 import { Montserrat, Lato } from "next/font/google";
 import { config } from "@fortawesome/fontawesome-svg-core";
 import "@fortawesome/fontawesome-svg-core/styles.css";
-import "leaflet/dist/leaflet.css";
+import "leaflet/dist/leaflet.css"; // Ensure type declarations are available
 config.autoAddCss = false;
 // Configure Montserrat font
 const montserrat = Montserrat({
@@ -38,9 +39,11 @@ export default function RootLayout({
     <html lang="en" className={`${montserrat.variable} ${lato.variable}`}>
       <body>
         <DataProvider>
-          <Navbar />
-          <main>{children}</main>
-          {/* You might also have a Footer component here if applicable */}
+          <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
+            <Navbar />
+            <main style={{ flex: '1' }}>{children}</main>
+            <Footer />
+          </div>
         </DataProvider>
       </body>
     </html>

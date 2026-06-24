@@ -3,13 +3,13 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { useData } from '../../contexts/DataContext';
+import { useData } from '@/contexts/DataContext';
 import { WasteListing, LocationData, ItemType, WasteCategory } from '../../types';
 import { FaPlusCircle, FaMapMarkerAlt, FaSpinner, FaTimesCircle, FaUpload, FaMoneyBillWave, FaTrash, FaBoxOpen } from 'react-icons/fa';
 import styles from './list-waste.module.css'; // NEW: Import module CSS for this page
 
 export default function ListWastePage() {
-  const { currentUser, loading: dataContextLoading, createWasteListing } = useData();
+  const {  user :currentUser, loading: dataContextLoading, createWasteListing } = useData();
   const router = useRouter();
 
   const [wasteType, setWasteType] = useState('');
@@ -28,7 +28,7 @@ export default function ListWastePage() {
   const [price, setPrice] = useState<number | ''>(''); // For 'old_item'
 
   useEffect(() => {
-    if (!dataContextLoading && (!currentUser || currentUser.userType !== 'generator')) {
+    if (!dataContextLoading && !currentUser) {
       router.push('/auth/login');
     }
   }, [currentUser, dataContextLoading, router]);
@@ -43,14 +43,28 @@ export default function ListWastePage() {
 
     setLocationStatus('fetching');
     navigator.geolocation.getCurrentPosition(
-      (position) => {
+      async (position) => {
+        let addressStr = 'Fetching address...';
         setLocation({
           latitude: position.coords.latitude,
           longitude: position.coords.longitude,
-          address: 'Fetching address...' // Placeholder, could be reverse geocoded
+          address: addressStr 
         });
         setLocationStatus('success');
         setErrorMessage('');
+
+        // Reverse geocoding
+        try {
+          const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${position.coords.latitude}&lon=${position.coords.longitude}`);
+          if (res.ok) {
+            const data = await res.json();
+            if (data && data.display_name) {
+              setLocation(prev => prev ? { ...prev, address: data.display_name } : null);
+            }
+          }
+        } catch (e) {
+          console.error('Reverse geocoding failed', e);
+        }
       },
       (geoError) => {
         console.error('Geolocation error:', geoError);
@@ -151,7 +165,7 @@ export default function ListWastePage() {
     }
   };
 
-  if (dataContextLoading || (!currentUser && !dataContextLoading) || (currentUser && currentUser.userType !== 'generator' && !dataContextLoading)) {
+  if (dataContextLoading || (!currentUser && !dataContextLoading)) {
     return (
       <div className={styles.loadingContainer}>
         <FaSpinner className={styles.loadingSpinner} />

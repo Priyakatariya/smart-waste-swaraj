@@ -1,26 +1,34 @@
-// src/app/dashboard/page.tsx
 'use client';
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { useData } from '../../contexts/DataContext';
-import { WasteListing, User } from '../../types'; // Import types
+import { useData } from '@/contexts/DataContext'; // FIX: Correct Path
+import { WasteListing, User, WasteStatus } from '../../types'; 
 import { FaBoxes, FaLeaf, FaSpinner, FaCheckCircle, FaMapMarkedAlt, FaClipboardCheck } from 'react-icons/fa';
-import styles from './dashboard.module.css'; // Import module CSS
+import styles from './dashboard.module.css';
 
 export default function DashboardPage() {
-  const { currentUser, loading, wasteListings, users, assignCollectorToListing, completeListing } = useData();
+  // FIX: Destructure updateWasteListing instead of old specific functions
+  const { 
+    user: currentUser, 
+    loading, 
+    wasteListings = [], 
+    users = [], 
+    updateWasteListing 
+  } = useData();
+  
   const router = useRouter();
+  const [viewRole, setViewRole] = useState<'generator' | 'collector' | null>(null);
 
-  // No longer need local loading state, rely directly on dataContext.loading
   useEffect(() => {
-    // Only redirect if DataContext has finished loading AND there's no current user
     if (!loading && !currentUser) {
       router.push('/auth/login');
+    } else if (currentUser && !viewRole) {
+      setViewRole(currentUser.userType);
     }
-  }, [currentUser, loading, router]); // Depend on loading from context
+  }, [currentUser, loading, router, viewRole]);
 
-  if (loading) { // Use 'loading' directly from context
+  if (loading) {
     return (
       <div className={styles.loadingContainer}>
         <FaSpinner className={styles.loadingSpinner} />
@@ -29,37 +37,27 @@ export default function DashboardPage() {
     );
   }
 
-  // If loading is false but currentUser is null (meaning not logged in), show access denied
-  if (!currentUser) {
-    // This case is already handled by the useEffect redirect, but for robustness:
-    return (
-      <div className={styles.unauthorizedContainer}>
-        <h1>Access Denied</h1>
-        <p>Please log in to view your Dashboard.</p>
-        <button className={styles.loginRedirectButton} onClick={() => router.push('/auth/login')}>Go to Login</button>
-      </div>
-    );
-  }
+  if (!currentUser) return null;
 
-  const userListings: WasteListing[] = currentUser?.userType === 'generator'
+  // --- Logic for filtering listings remains the same ---
+  const userListings: WasteListing[] = viewRole === 'generator'
     ? wasteListings.filter((listing: WasteListing) => listing.userId === currentUser.id)
-    : wasteListings.filter((listing: WasteListing) => listing.assignedCollectorId === currentUser?.id || (listing.status === 'pending' && listing.itemType === 'waste')); // Collectors see pending waste
+    : wasteListings.filter((listing: WasteListing) => 
+        listing.assignedCollectorId === currentUser?.id || 
+        (listing.status === 'pending' && listing.itemType === 'waste')
+      );
 
   const pendingListings = userListings.filter((listing: WasteListing) => listing.status === 'pending');
   const completedListings = userListings.filter((listing: WasteListing) => listing.status === 'completed');
 
+  // Helper functions
   const getGeneratorName = (userId: string) => {
-    const generator = users.find((u: User) => u.id === userId && u.userType === 'generator');
-    return generator ? generator.name ?? generator.email.split('@')[0] : 'Unknown Generator';
+    const generator = users.find((u: User) => u.id === userId);
+    return generator ? generator.name : 'Unknown';
   };
 
-  const getCollectorName = (collectorId: string | undefined) => {
-    if (!collectorId) return 'Unassigned';
-    const collector = users.find((u: User) => u.id === collectorId && u.userType === 'collector');
-    return collector ? collector.name || collector.email.split('@')[0] : 'Unknown Collector';
-  };
-
-  const Card = ({ title, value, icon, bgColor }: { title: string; value: number | string; icon: React.ReactNode; bgColor: string }) => (
+  // --- Card UI Component ---
+  const Card = ({ title, value, icon, bgColor }: any) => (
     <div className={`${styles.dashboardCard} ${bgColor}`}>
       <div>
         <h3 className={styles.cardTitle}>{title}</h3>
@@ -69,130 +67,83 @@ export default function DashboardPage() {
     </div>
   );
 
-  const ListingCard = ({ listing, isCollectorView }: { listing: WasteListing; isCollectorView: boolean }) => (
-    <div className={styles.listingCard}>
-      <div>
-        <h4 className={styles.listingTitle}>{listing.wasteType} - {listing.quantity} {listing.unit}</h4>
-        <p className={styles.listingStatusText}>Status: <span className={`${styles.listingStatus} ${
-          listing.status === 'pending' ? styles.statusPending :
-          listing.status === 'assigned' ? styles.statusAssigned :
-          styles.statusCompleted
-        }`}>{listing.status}</span></p>
-        {isCollectorView && (
-          <p className={styles.listingDetail}>Generated by: {getGeneratorName(listing.userId)}</p>
-        )}
-        {!isCollectorView && listing.status !== 'pending' && (
-          <p className={styles.listingDetail}>Assigned to: {getCollectorName(listing.assignedCollectorId)}</p>
-        )}
-        <p className={styles.listingDetail}>Listed: {new Date(listing.createdAt).toLocaleDateString()}</p>
-        {listing.description && (
-          <p className={styles.listingDescription}>{listing.description}</p>
-        )}
-        {listing.itemType === 'old_item' && listing.price && (
-          <p className={styles.listingDetail}>Price: ₹{listing.price.toFixed(2)}</p>
-        )}
-        {listing.imageUrl && (
-          <img src={listing.imageUrl} alt={listing.wasteType} className={styles.listingImagePreview} onError={(e) => { e.currentTarget.src = 'https://placehold.co/150x100/e0e0e0/555555?text=No+Img'; }} />
-        )}
-      </div>
-      <div className={styles.listingActions}>
-        <button
-          onClick={() => router.push(`/map?listingId=${listing.id}`)}
-          className={styles.viewMapButton}
-        >
-          <FaMapMarkedAlt className={styles.buttonIcon} /> View on Map
-        </button>
-        {isCollectorView && (
-          <div className={styles.collectorActions}>
-            {listing.status === 'pending' && listing.itemType === 'waste' && ( // Only collectors can assign waste
-              <button
-                onClick={() => assignCollectorToListing(listing.id, currentUser!.id)}
-                className={styles.actionButtonAssign}
-              >
-                <FaClipboardCheck className={styles.buttonIcon} /> Assign to me
-              </button>
-            )}
-            {listing.status === 'assigned' && listing.assignedCollectorId === currentUser?.id && (
-              <button
-                onClick={() => completeListing(listing.id)}
-                className={styles.actionButtonComplete}
-              >
-                <FaCheckCircle className={styles.buttonIcon} /> Mark Complete
-              </button>
-            )}
-             {listing.itemType === 'old_item' && ( // "Buy/Contact Seller" for old items
-              <button
-                onClick={() => alert(`Contacting ${getGeneratorName(listing.userId)} about ${listing.wasteType} for ₹${listing.price || 'N/A'}. (Simulated action)`)}
-                className={styles.actionButtonContact}
-              >
-                <FaClipboardCheck className={styles.buttonIcon} /> View/Contact
-              </button>
-            )}
-          </div>
-        )}
-      </div>
-    </div>
-  );
-
   return (
     <div className={styles.dashboardContainer}>
       <h1 className={styles.welcomeTitle}>
         Welcome, {currentUser?.name || currentUser?.email.split('@')[0]}!
       </h1>
 
+      {/* Role Toggle */}
+      <div style={{ marginBottom: '20px', display: 'flex', gap: '10px' }}>
+        <button 
+          onClick={() => setViewRole('generator')} 
+          style={{ padding: '10px 20px', borderRadius: '5px', background: viewRole === 'generator' ? '#4CAF50' : '#ddd', color: viewRole === 'generator' ? '#fff' : '#333', border: 'none', cursor: 'pointer', fontWeight: 'bold' }}
+        >
+          Generator Dashboard
+        </button>
+        <button 
+          onClick={() => setViewRole('collector')} 
+          style={{ padding: '10px 20px', borderRadius: '5px', background: viewRole === 'collector' ? '#2196F3' : '#ddd', color: viewRole === 'collector' ? '#fff' : '#333', border: 'none', cursor: 'pointer', fontWeight: 'bold' }}
+        >
+          Collector Dashboard
+        </button>
+      </div>
+
+      {/* Stats Section */}
       <div className={styles.statsGrid}>
-        <Card
-          title="Total Listings"
-          value={userListings.length}
-          icon={<FaBoxes />}
-          bgColor={styles.cardBgBlue}
-        />
-        <Card
-          title="Pending"
-          value={pendingListings.length}
-          icon={<FaLeaf />}
-          bgColor={styles.cardBgOrange}
-        />
-        <Card
-          title="Completed"
-          value={completedListings.length}
-          icon={<FaCheckCircle />}
-          bgColor={styles.cardBgGreen}
-        />
+        <Card title="Total Listings" value={userListings.length} icon={<FaBoxes />} bgColor={styles.cardBgBlue} />
+        <Card title="Pending" value={pendingListings.length} icon={<FaLeaf />} bgColor={styles.cardBgOrange} />
+        <Card title="Completed" value={completedListings.length} icon={<FaCheckCircle />} bgColor={styles.cardBgGreen} />
       </div>
 
       <h2 className={styles.listingsSectionTitle}>
-        {currentUser?.userType === 'generator' ? 'Your Waste Listings' : 'Waste/Items for Collection'}
+        {viewRole === 'generator' ? 'Your Waste Listings' : 'Waste/Items for Collection'}
       </h2>
 
       <div className={styles.listingsGrid}>
         {userListings.length > 0 ? (
-          userListings.sort((a, b) => {
-            const dateA = typeof a.createdAt === 'string' ? new Date(a.createdAt).getTime() : a.createdAt;
-            const dateB = typeof b.createdAt === 'string' ? new Date(b.createdAt).getTime() : b.createdAt;
-            return dateB - dateA;
-          }).map(listing => (
-            <ListingCard key={listing.id} listing={listing} isCollectorView={currentUser?.userType === 'collector'} />
+          userListings.map(listing => (
+            <div key={listing.id} className={styles.listingCard}>
+              <div className={styles.listingInfo}>
+                <h4 className={styles.listingTitle}>{listing.wasteType} - {listing.quantity} {listing.unit}</h4>
+                <p>Status: <span className={styles.statusBadge}>{listing.status}</span></p>
+              </div>
+
+              <div className={styles.listingActions}>
+                <button onClick={() => router.push(`/map?listingId=${listing.id}`)} className={styles.viewMapButton}>
+                  <FaMapMarkedAlt /> Map
+                </button>
+
+                {/* COLLECTOR ACTIONS FIX */}
+                {viewRole === 'collector' && (
+                  <div className={styles.collectorActions}>
+                    {listing.status === 'pending' && (
+                      <button 
+                        // FIX: Use updateWasteListing to assign
+                        onClick={() => updateWasteListing?.(listing.id, { status: 'assigned', assignedCollectorId: currentUser.id })}
+                        className={styles.actionButtonAssign}
+                      >
+                        <FaClipboardCheck /> Assign
+                      </button>
+                    )}
+                    {listing.status === 'assigned' && listing.assignedCollectorId === currentUser.id && (
+                      <button 
+                        // FIX: Use updateWasteListing to complete
+                        onClick={() => updateWasteListing?.(listing.id, { status: 'completed' })}
+                        className={styles.actionButtonComplete}
+                      >
+                        <FaCheckCircle /> Complete
+                      </button>
+                    )}
+                  </div>
+                )}
+              </div>
+            </div>
           ))
         ) : (
-          <p className={styles.noListingsMessage}>
-            {currentUser?.userType === 'generator'
-              ? "You haven't listed any waste or items yet. Go to 'List Waste' or the 'Waste & Item Map' to add one!"
-              : "No waste or items currently available for collection or assigned to you."}
-          </p>
+          <p className={styles.noData}>No listings to show.</p>
         )}
       </div>
-
-      {currentUser?.userType === 'generator' && (
-        <div className={styles.listWasteAction}>
-          <button
-            onClick={() => router.push('/list-waste')}
-            className={styles.listWasteButton}
-          >
-            List New Waste / Item
-          </button>
-        </div>
-      )}
     </div>
   );
 }

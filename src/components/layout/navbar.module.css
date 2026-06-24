@@ -31,10 +31,11 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  max-width: 1200px; /* Standard max-width for content */
-  margin: 0 auto;
-  padding: 0 1.5rem; /* Horizontal padding */
-  min-height: 55px; /* Reduced minimum height for a more compact navbar */
+  width: 100%;
+  box-sizing: border-box; /* Fix for horizontal overflow */
+  margin: 0;
+  padding: 0 2rem; /* Horizontal padding */
+  min-height: 60px; /* Slightly taller for elegance */
 }
 
 /* --- Logo Styling --- */
@@ -65,9 +66,19 @@
 /* --- Navigation Links Container (Desktop) --- */
 .navLinks {
   display: flex;
-  gap: 1.8rem; /* Reduced space between nav items for compactness */
+  gap: 1rem; /* Adjust gap between links */
   align-items: center;
+  flex: 1;
+  justify-content: center;
   transition: all 0.4s ease-in-out; /* Smooth transition for mobile menu slide */
+}
+
+/* --- Profile Section --- */
+.profileSection {
+  position: absolute;
+  right: 2rem;
+  display: flex;
+  align-items: center;
 }
 
 /* --- Individual Navigation Link Styling --- */
@@ -223,6 +234,15 @@
     gap: 0; /* Remove gap when stacked */
     align-items: stretch; /* Stretch items to fill menu width */
     justify-content: flex-start; /* Align items to top */
+  }
+
+  .profileSection {
+    position: static;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-top: 1rem;
+    width: 100%;
   }
 
   .navLinks.active {

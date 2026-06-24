@@ -166,13 +166,16 @@ const ListingDetailPanel: React.FC<ListingDetailPanelProps> = ({
 
   // Logic to determine if "Pick Up/Assign" button should be shown
   const canAssign =
-    currentUser?.userType === "collector" && listing?.status === "pending";
+    listing?.status === "pending" && listing?.userId !== currentUser?.id; // Don't allow lister to assign to themselves
 
   // Logic to determine if "Mark as Completed" button should be shown
   const canComplete =
-    currentUser?.userType === "collector" &&
-    listing?.status === "assigned" &&
-    listing?.assignedCollectorId === currentUser.id;
+    listing?.status !== "completed" &&
+    (listing?.assignedCollectorId === currentUser?.id || listing?.userId === currentUser?.id);
+
+  const isOldItem = listing?.itemType === "old_item";
+  const assignButtonText = isOldItem ? "Buy / Claim Item" : "Pick Up / Assign to Me";
+  const completeButtonText = isOldItem ? "Mark as Sold" : "Mark as Collected";
 
   // Logic to determine if the contact button should be shown (not for the lister themselves)
   const showContactLister =
@@ -382,7 +385,7 @@ const ListingDetailPanel: React.FC<ListingDetailPanelProps> = ({
               onClick={handleAssignToMe}
               disabled={!currentUser}
             >
-              <FaTruck /> Pick Up / Assign to Me
+              <FaTruck /> {assignButtonText}
             </button>
           )}
           {canComplete && (
@@ -391,7 +394,7 @@ const ListingDetailPanel: React.FC<ListingDetailPanelProps> = ({
               onClick={handleMarkAsCompleted}
               disabled={!currentUser}
             >
-              <FaCheckCircle /> Mark as Completed
+              <FaCheckCircle /> {completeButtonText}
             </button>
           )}
           {showContactLister && (
