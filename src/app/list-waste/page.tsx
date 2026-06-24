@@ -109,25 +109,72 @@ export default function ListWastePage() {
 
 
   const handleAutoCategorize = () => {
-    if (!imageUrl && !description) {
-      setErrorMessage('Please upload an image or provide a description for AI categorization.');
+    if (!description && !wasteType) {
+      setErrorMessage('Please provide a description or a basic item name for the AI to analyze.');
       return;
     }
     
     setErrorMessage('');
-    setItemType('waste'); 
     
-    // Simulate AI delay and logic
-    const categories = ['recyclable_plastic', 'e_waste', 'recyclable_paper', 'biodegradable', 'recyclable_metal'];
-    const randomCategory = categories[Math.floor(Math.random() * categories.length)];
+    // Smart Keyword Analysis
+    const textToAnalyze = `${description} ${wasteType}`.toLowerCase();
     
+    let detectedCategory: WasteCategory = 'other';
+    let detectedItemType: ItemType = 'waste';
+    let detectedName = wasteType || 'Auto-detected Item';
+    let detectedQty = quantity || '1';
+    let detectedUnit = unit || 'kg';
+
+    // 1. Detect Item Type & Category based on keywords
+    if (textToAnalyze.match(/(furniture|chair|table|sofa|bed|shelf|desk|clothing|shirt|pant|shoes|toy|book|appliance)/)) {
+      detectedItemType = 'old_item';
+    } else if (textToAnalyze.match(/(phone|laptop|cable|wire|battery|electronic|tv|monitor|computer|keyboard|mouse|circuit|screen)/)) {
+      detectedItemType = 'waste';
+      detectedCategory = 'e_waste';
+    } else if (textToAnalyze.match(/(plastic|bottle|bag|wrapper|polythene|container|pvc|pet)/)) {
+      detectedCategory = 'recyclable_plastic';
+    } else if (textToAnalyze.match(/(paper|cardboard|box|newspaper|magazine|carton)/)) {
+      detectedCategory = 'recyclable_paper';
+    } else if (textToAnalyze.match(/(can|tin|metal|iron|steel|aluminum|copper)/)) {
+      detectedCategory = 'recyclable_metal';
+    } else if (textToAnalyze.match(/(food|peel|organic|vegetable|fruit|leaf|leaves|grass|wet|kitchen)/)) {
+      detectedCategory = 'biodegradable';
+    } else if (textToAnalyze.match(/(chemical|paint|acid|medical|syringe|oil|toxic)/)) {
+      detectedCategory = 'hazardous';
+    } else if (textToAnalyze.match(/(mixed|dry|trash)/)) {
+      detectedCategory = 'non_biodegradable';
+    }
+
+    // 2. Try to extract quantity and unit from text (e.g. "5 kg", "2 bags")
+    const qtyMatch = textToAnalyze.match(/(\d+)\s*(kg|grams|liters|pieces|bags|units|boxes)/i);
+    if (qtyMatch) {
+      detectedQty = qtyMatch[1];
+      detectedUnit = qtyMatch[2].toLowerCase();
+    } else {
+      // Just extract any standalone number
+      const numMatch = textToAnalyze.match(/(\d+)/);
+      if (numMatch) detectedQty = numMatch[1];
+    }
+
+    // 3. Extract a name if wasteType is empty
+    if (!wasteType) {
+      if (detectedItemType === 'old_item') detectedName = 'Auto-detected Reusable Item';
+      else detectedName = `Auto-detected ${detectedCategory.replace('_', ' ')}`;
+    }
+
     setTimeout(() => {
-      setWasteCategory(randomCategory as WasteCategory);
-      setWasteType(`Auto-detected ${randomCategory.replace('_', ' ')}`);
-      setQuantity('1');
-      setUnit('kg');
-      alert(`🤖 AI successfully categorized your waste as: ${randomCategory.replace('_', ' ')}!`);
-    }, 1500);
+      setItemType(detectedItemType);
+      if (detectedItemType === 'waste') {
+        setWasteCategory(detectedCategory);
+      } else {
+        setWasteCategory(''); // Not applicable for old items
+        if (!price) setPrice(0); // Suggest 0 (donation) or let them edit
+      }
+      setWasteType(detectedName);
+      setQuantity(detectedQty);
+      setUnit(detectedUnit);
+      alert(`🤖 Smart AI analyzed your input:\nType: ${detectedItemType === 'old_item' ? 'Old Item' : 'Waste'}\nCategory: ${detectedCategory.replace('_', ' ')}\nQuantity: ${detectedQty} ${detectedUnit}`);
+    }, 800);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
