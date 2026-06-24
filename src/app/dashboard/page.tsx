@@ -44,8 +44,8 @@ export default function DashboardPage() {
   const userListings: WasteListing[] = viewRole === 'generator'
     ? wasteListings.filter((listing: WasteListing) => listing.userId === currentUser.id)
     : wasteListings.filter((listing: WasteListing) => 
-        listing.assignedCollectorId === currentUser?.id || 
-        (listing.status === 'pending' && listing.itemType === 'waste')
+        listing.userId !== currentUser.id && // Exclude my own listings from marketplace
+        (listing.assignedCollectorId === currentUser.id || listing.status === 'pending')
       );
 
   const pendingListings = userListings.filter((listing: WasteListing) => listing.status === 'pending');
@@ -108,31 +108,31 @@ export default function DashboardPage() {
         </div>
       </div>
       
-      {/* Role Toggle */}
+      {/* Universal Roles Toggle */}
       <div style={{ marginBottom: '20px', display: 'flex', gap: '10px' }}>
         <button 
           onClick={() => setViewRole('generator')} 
           style={{ padding: '10px 20px', borderRadius: '5px', background: viewRole === 'generator' ? '#4CAF50' : '#ddd', color: viewRole === 'generator' ? '#fff' : '#333', border: 'none', cursor: 'pointer', fontWeight: 'bold' }}
         >
-          Generator Dashboard
+          My Listings (Sell/Dispose)
         </button>
         <button 
           onClick={() => setViewRole('collector')} 
           style={{ padding: '10px 20px', borderRadius: '5px', background: viewRole === 'collector' ? '#2196F3' : '#ddd', color: viewRole === 'collector' ? '#fff' : '#333', border: 'none', cursor: 'pointer', fontWeight: 'bold' }}
         >
-          Collector Dashboard
+          Marketplace (Buy/Collect)
         </button>
       </div>
 
       {/* Stats Section */}
       <div className={styles.statsGrid}>
-        <Card title="Total Listings" value={userListings.length} icon={<FaBoxes />} bgColor={styles.cardBgBlue} />
+        <Card title="Total Items" value={userListings.length} icon={<FaBoxes />} bgColor={styles.cardBgBlue} />
         <Card title="Pending" value={pendingListings.length} icon={<FaLeaf />} bgColor={styles.cardBgOrange} />
         <Card title="Completed" value={completedListings.length} icon={<FaCheckCircle />} bgColor={styles.cardBgGreen} />
       </div>
 
       <h2 className={styles.listingsSectionTitle}>
-        {viewRole === 'generator' ? 'Your Waste Listings' : 'Waste/Items for Collection'}
+        {viewRole === 'generator' ? 'Your Items & Waste' : 'Available Items in Marketplace'}
       </h2>
 
       <div className={styles.listingsGrid}>
@@ -141,6 +141,15 @@ export default function DashboardPage() {
             <div key={listing.id} className={styles.listingCard}>
               <div className={styles.listingInfo}>
                 <h4 className={styles.listingTitle}>{listing.wasteType} - {listing.quantity} {listing.unit}</h4>
+                {listing.itemType === 'old_item' && listing.price !== undefined && (
+                  <p style={{ fontWeight: 'bold', color: '#4CAF50', fontSize: '1.1rem', margin: '5px 0' }}>Price: ₹{listing.price}</p>
+                )}
+                {viewRole === 'collector' && (
+                  <p style={{ color: '#666', fontSize: '0.9rem', marginBottom: '5px' }}>Listed By: <strong>{getGeneratorName(listing.userId)}</strong></p>
+                )}
+                {viewRole === 'generator' && listing.assignedCollectorId && (
+                  <p style={{ color: '#666', fontSize: '0.9rem', marginBottom: '5px' }}>{listing.status === 'completed' ? 'Collected By' : 'Assigned To'}: <strong>{getCollectorName(listing.assignedCollectorId)}</strong></p>
+                )}
                 <p>Status: <span className={styles.statusBadge}>{listing.status}</span></p>
               </div>
 
@@ -205,7 +214,7 @@ export default function DashboardPage() {
                   </div>
                 )}
 
-                {/* COLLECTOR ACTIONS */}
+                {/* MARKETPLACE ACTIONS */}
                 {viewRole === 'collector' && (
                   <div className={styles.collectorActions}>
                     {listing.status === 'pending' && (
@@ -213,7 +222,7 @@ export default function DashboardPage() {
                         onClick={() => updateWasteListing?.(listing.id, { status: 'assigned', assignedCollectorId: currentUser.id })}
                         className={styles.actionButtonAssign}
                       >
-                        <FaClipboardCheck /> Assign
+                        <FaClipboardCheck /> {listing.itemType === 'old_item' ? '🛒 Buy / Claim' : '♻️ Collect Waste'}
                       </button>
                     )}
                     {listing.status === 'assigned' && listing.assignedCollectorId === currentUser.id && (
@@ -221,7 +230,7 @@ export default function DashboardPage() {
                         onClick={() => updateWasteListing?.(listing.id, { status: 'completed' })}
                         className={styles.actionButtonComplete}
                       >
-                        <FaCheckCircle /> Complete
+                        <FaCheckCircle /> Mark as {listing.itemType === 'old_item' ? 'Received' : 'Collected'}
                       </button>
                     )}
                   </div>
