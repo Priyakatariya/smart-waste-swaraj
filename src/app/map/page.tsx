@@ -216,7 +216,7 @@ const MapControlsComponent: React.FC<MapControlsComponentProps> = ({
   );
 };
 
-export default function MapPage() {
+function MapContent() {
   // ⁠ wasteListings ⁠ from DataContext will be our source of truth for all listings.
   // We need a way to trigger updates in DataContext for status changes.
   const {
@@ -278,7 +278,7 @@ export default function MapPage() {
       // Clear the initialFocusListingId to prevent re-triggering
       setInitialFocusListingId(null);
     }
-  }, [initialFocusListingId, wasteListings]); // Remove selectedListing from dependencies
+  }, [initialFocusListingId, wasteListings, selectedListing]); 
 
   // Filter and search logic (now directly on ⁠ wasteListings ⁠ from DataContext)
   const filteredLocations = useMemo(() => {
@@ -558,5 +558,13 @@ export default function MapPage() {
         />
       )}
     </div>
+  );
+}
+
+export default function MapPage() {
+  return (
+    <React.Suspense fallback={<div className={styles.loadingContainer}><FaSpinner className={styles.loadingSpinner} /><p className={styles.loadingText}>Loading Map...</p></div>}>
+      <MapContent />
+    </React.Suspense>
   );
 }
