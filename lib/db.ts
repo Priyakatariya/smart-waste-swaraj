@@ -6,8 +6,8 @@ export const connectToDB = async () => {
   if (mongoose.connection.readyState >= 1) return;
 
   if (!MONGODB_URI) {
-    console.error("❌ MONGODB_URI is missing! Check your .env.local file.");
-    return;
+    console.error("❌ MONGODB_URI is missing! Check your environment variables.");
+    throw new Error("MONGODB_URI is missing from environment variables.");
   }
 
   try {
