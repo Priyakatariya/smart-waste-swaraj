@@ -83,6 +83,9 @@ export default function Navbar() {
           <Link href="/list-waste" className={styles.navLink} onClick={handleAddWasteClick}>
             <FaPlusCircle className={styles.navIcon} /> Add Waste
           </Link>
+          <Link href="/leaderboard" className={styles.navLink} onClick={handleNavLinkClick}>
+            <span className={styles.navIcon} style={{ fontSize: '1.2rem' }}>🏆</span> Leaderboard
+          </Link>
           <Link href="/learn" className={styles.navLink} onClick={handleNavLinkClick}>
             <FaBookOpen className={styles.navIcon} /> Learn
           </Link>

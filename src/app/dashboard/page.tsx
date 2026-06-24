@@ -95,6 +95,19 @@ export default function DashboardPage() {
         Welcome, {currentUser?.name || currentUser?.email.split('@')[0]}!
       </h1>
       
+      {/* Gamification Stats Header */}
+      <div style={{ display: 'flex', gap: '15px', marginBottom: '25px', flexWrap: 'wrap' }}>
+        <div style={{ background: 'linear-gradient(135deg, #4CAF50, #81C784)', color: 'white', padding: '10px 20px', borderRadius: '50px', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '8px', boxShadow: '0 4px 10px rgba(76,175,80,0.3)' }}>
+          <span style={{ fontSize: '1.2em' }}>🌱</span> 
+          {/* Default to 0 if undefined */}
+          {currentUser?.swarajPoints || 0} Swaraj Points
+        </div>
+        <div style={{ background: 'linear-gradient(135deg, #FFC107, #FFD54F)', color: 'black', padding: '10px 20px', borderRadius: '50px', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '8px', boxShadow: '0 4px 10px rgba(255,193,7,0.3)' }}>
+          <span style={{ fontSize: '1.2em' }}>⭐</span> 
+          {currentUser?.rating ? currentUser.rating.toFixed(1) : 'New User'} Rating
+        </div>
+      </div>
+      
       {/* Role Toggle */}
       <div style={{ marginBottom: '20px', display: 'flex', gap: '10px' }}>
         <button 
