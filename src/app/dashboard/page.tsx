@@ -19,6 +19,7 @@ export default function DashboardPage() {
   
   const router = useRouter();
   const [viewRole, setViewRole] = useState<'generator' | 'collector' | null>(null);
+  const [ratingModal, setRatingModal] = useState<{isOpen: boolean, targetUserId: string, targetName: string}>({isOpen: false, targetUserId: '', targetName: ''});
 
   useEffect(() => {
     if (!loading && !currentUser) {
@@ -49,8 +50,6 @@ export default function DashboardPage() {
 
   const pendingListings = userListings.filter((listing: WasteListing) => listing.status === 'pending');
   const completedListings = userListings.filter((listing: WasteListing) => listing.status === 'completed');
-
-  const [ratingModal, setRatingModal] = useState<{isOpen: boolean, targetUserId: string, targetName: string}>({isOpen: false, targetUserId: '', targetName: ''});
 
   const handleRate = async (rating: number) => {
     try {
@@ -148,10 +147,52 @@ export default function DashboardPage() {
                     }}
                     style={{ background: '#FFC107', color: '#000', border: 'none', padding: '8px 12px', borderRadius: '5px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '5px' }}
                   >
-                     Rate User
+                     ⭐ Rate User
                   </button>
                 )}
 
+                {/* Generator Actions: Edit & Delete */}
+                {viewRole === 'generator' && listing.status === 'pending' && (
+                  <div className={styles.collectorActions}>
+                    <button 
+                      onClick={() => {
+                        const newQty = prompt("Enter new quantity:", listing.quantity);
+                        if (newQty) {
+                          updateWasteListing?.(listing.id, { quantity: newQty });
+                        }
+                      }}
+                      style={{ background: '#2196F3', color: '#fff', border: 'none', padding: '8px 12px', borderRadius: '5px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '5px' }}
+                    >
+                      ✏️ Edit
+                    </button>
+                    <button 
+                      onClick={async () => {
+                        if (confirm("Are you sure you want to delete this listing?")) {
+                          try {
+                            const res = await fetch('/api/listings/delete', {
+                              method: 'DELETE',
+                              headers: { 'Content-Type': 'application/json' },
+                              body: JSON.stringify({ id: listing.id })
+                            });
+                            if (res.ok) {
+                              alert("Listing deleted successfully!");
+                              window.location.reload();
+                            } else {
+                              alert("Failed to delete listing.");
+                            }
+                          } catch (err) {
+                            console.error(err);
+                          }
+                        }
+                      }}
+                      style={{ background: '#dc3545', color: '#fff', border: 'none', padding: '8px 12px', borderRadius: '5px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '5px' }}
+                    >
+                      🗑️ Delete
+                    </button>
+                  </div>
+                )}
+
+                {/* COLLECTOR ACTIONS */}
                 {viewRole === 'collector' && (
                   <div className={styles.collectorActions}>
                     {listing.status === 'pending' && (

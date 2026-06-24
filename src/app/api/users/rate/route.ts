@@ -12,7 +12,13 @@ export async function POST(req: Request) {
 
     await connectToDB();
 
-    const user = await User.findById(targetUserId);
+    let user;
+    try {
+      user = await User.findById(targetUserId);
+    } catch (e) {
+      return NextResponse.json({ message: "Invalid user ID format" }, { status: 400 });
+    }
+
     if (!user) {
       return NextResponse.json({ message: "User not found" }, { status: 404 });
     }

@@ -30,10 +30,14 @@ export async function PATCH(req: Request) {
 
     // Award Swaraj Points
     if (updateFields.status === 'completed') {
-      const generatorId = updatedListing.userId;
-      const collectorId = updatedListing.assignedCollectorId;
-      if (generatorId) await User.findByIdAndUpdate(generatorId, { $inc: { swarajPoints: 50 } });
-      if (collectorId) await User.findByIdAndUpdate(collectorId, { $inc: { swarajPoints: 50 } });
+      try {
+        const generatorId = updatedListing.userId;
+        const collectorId = updatedListing.assignedCollectorId;
+        if (generatorId) await User.findByIdAndUpdate(generatorId, { $inc: { swarajPoints: 50 } });
+        if (collectorId) await User.findByIdAndUpdate(collectorId, { $inc: { swarajPoints: 50 } });
+      } catch (pointsErr) {
+        console.error("Failed to award points:", pointsErr);
+      }
     }
 
     // Format for frontend
