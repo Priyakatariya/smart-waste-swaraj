@@ -44,7 +44,7 @@ export default function SignupPage() {
       const data = await res.json();
 
       if (res.ok) {
-        // Auto-login after signup
+        // Signup successful — now auto-login
         const loginRes = await fetch('/api/auth/login', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -55,8 +55,24 @@ export default function SignupPage() {
           localStorage.setItem('sws_user', JSON.stringify(loginData.user));
         }
         router.push('/dashboard');
+
       } else if (res.status === 400 && data.message === 'Email already exists') {
-        setError('This email is already registered. Please login instead.');
+        // Email exists — try logging in with same password automatically
+        const loginRes = await fetch('/api/auth/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password }),
+        });
+        const loginData = await loginRes.json();
+        if (loginRes.ok) {
+          // Password matched — silently log them in
+          localStorage.setItem('sws_user', JSON.stringify(loginData.user));
+          router.push('/dashboard');
+        } else {
+          // Different password — ask them to login manually
+          setError('This email is already registered. Please go to the Login page.');
+        }
+
       } else {
         setError(data.message || 'Failed to create account. Please try again.');
       }
@@ -66,6 +82,7 @@ export default function SignupPage() {
       setLoading(false);
     }
   };
+
 
   return (
     <div className={styles.signupPageContainer}>
