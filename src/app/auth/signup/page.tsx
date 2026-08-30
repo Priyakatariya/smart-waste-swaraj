@@ -33,7 +33,7 @@ export default function SignupPage() {
       // TypeScript now knows 'password' is valid here
       const success = await signup({ name, email, password, userType });
       if (success) {
-        router.push('/auth/login');
+        router.push('/dashboard');
       } else {
         setError('Failed to create account. Email might already be in use.');
       }

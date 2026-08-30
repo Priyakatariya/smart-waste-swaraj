@@ -86,7 +86,13 @@ export function DataProvider({ children }: { children: ReactNode }) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(userData),
       });
-      return res.ok;
+      const data = await res.json();
+      if (res.ok) {
+        setUser(data.user);
+        localStorage.setItem('sws_user', JSON.stringify(data.user));
+        return true;
+      }
+      return false;
     } catch (error) {
       return false;
     }

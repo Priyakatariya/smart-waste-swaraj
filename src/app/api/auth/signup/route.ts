@@ -25,7 +25,15 @@ export async function POST(req: Request) {
       userType
     });
 
-    return NextResponse.json({ message: "User created successfully", userId: newUser._id }, { status: 201 });
+    return NextResponse.json({ 
+      message: "User created successfully", 
+      user: {
+        id: newUser._id,
+        name: newUser.name,
+        email: newUser.email,
+        userType: newUser.userType
+      }
+    }, { status: 201 });
   } catch (err) {
     console.error("Signup Error:", err);
     return NextResponse.json({ message: "Server Error" }, { status: 500 });
