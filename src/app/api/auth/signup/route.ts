@@ -34,8 +34,8 @@ export async function POST(req: Request) {
         userType: newUser.userType
       }
     }, { status: 201 });
-  } catch (err) {
+  } catch (err: any) {
     console.error("Signup Error:", err);
-    return NextResponse.json({ message: "Server Error" }, { status: 500 });
+    return NextResponse.json({ message: err.message || "Server Error" }, { status: 500 });
   }
 }
