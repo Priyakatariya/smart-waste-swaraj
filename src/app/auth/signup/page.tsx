@@ -29,13 +29,36 @@ export default function SignupPage() {
       return;
     }
 
+    if (password.length < 6) {
+      setError('Password must be at least 6 characters.');
+      setLoading(false);
+      return;
+    }
+
     try {
-      // TypeScript now knows 'password' is valid here
-      const success = await signup({ name, email, password, userType });
-      if (success) {
+      const res = await fetch('/api/auth/signup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, email, password, userType }),
+      });
+      const data = await res.json();
+
+      if (res.ok) {
+        // Auto-login after signup
+        const loginRes = await fetch('/api/auth/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password }),
+        });
+        const loginData = await loginRes.json();
+        if (loginRes.ok) {
+          localStorage.setItem('sws_user', JSON.stringify(loginData.user));
+        }
         router.push('/dashboard');
+      } else if (res.status === 400 && data.message === 'Email already exists') {
+        setError('This email is already registered. Please login instead.');
       } else {
-        setError('Failed to create account. Email might already be in use.');
+        setError(data.message || 'Failed to create account. Please try again.');
       }
     } catch (err) {
       setError('An unexpected error occurred. Please try again later.');
@@ -81,7 +104,14 @@ export default function SignupPage() {
             </label>
           </div>
 
-          {error && <p className={styles.errorMessage}>{error}</p>}
+          {error && (
+            <p className={styles.errorMessage}>
+              {error}{' '}
+              {error.includes('already registered') && (
+                <Link href="/auth/login" className={styles.loginLink}>Login Here →</Link>
+              )}
+            </p>
+          )}
 
           <button type="submit" className={styles.submitButton} disabled={loading}>
             {loading ? <FaSpinner className={styles.loadingSpinner} /> : <FaUserPlus className={styles.buttonIcon} />}
